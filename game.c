@@ -53,11 +53,10 @@ int main(void)
 	if(caseName[0] == '*')
 	{
 	    scanf("%d %d", &rows, &columns); // read in second line for board dimensions
-	   // printf("%s",caseName);	
+	    printf("%s",caseName);	
 	    fgets(input,MAX_INPUT, stdin); // read in the second line with fgets
 	    fillInitGen();
-	   // printf("Valid Generation? %i\n",validGen(0));
-	   // displayGen(0);
+	    displayGen(0);
 	}
 	// play while(!gameOver)
 	    // create new struct 
@@ -70,34 +69,7 @@ int main(void)
 	    // if genAlreadExists() || totalGen >= 250 => gameOver
 	    // destroy struct
     }	
-
-    // * Test for non-valid generations *//
     
-    gen testGens[MAX_GENERATIONS];
-    
-    for (r = 0; r < 10; r++)
-    {
-	for (c = 0; c < 10; c++)
-	{
-	    testGens[0].board[r][c] = ALIVE; // testGens[0] valid but all the same 
-	    testGens[1].board[r][c] = ALIVE; // testGens[1] valid ------> is saying invalid. why?
-	    testGens[2].board[r][c] = ALIVE; // testGens[2] one cell that isn't ALIVE or DEAD
-	    testGens[3].board[r][c] = ALIVE; // testGens[3] one cell that is NULL
-	    if (c%5 == 0)
-	    {
-	    testGens[0].board[r][c] = ALIVE; // testGens[0] valid but all the same 
-	    testGens[1].board[r][c] = DEAD; // testGens[1] valid
-	    testGens[2].board[r][c] = 't'; // 
-	    }
-	}
-    }
-
-    
-    for (i=0; i<=3; i++)
-    {
-        printf("Valid Generation? %i: %i\n",i,validGen(i));
-    }
-
     printf("end of processing.");
     return(0);
 } 
@@ -174,6 +146,7 @@ void fillInitGen()
 } // fillInitGen
 
 
+/*
 int validGen(int genNum)
 {
     int r;
@@ -203,4 +176,5 @@ int validGen(int genNum)
     assert(columns <= MAX_COLUMNS);
 
     return valid;
-} // validGen
+} // validGen */
+
