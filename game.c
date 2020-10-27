@@ -20,6 +20,7 @@ void fillInitGen();
 void displayGen(int);
 void validGen(int);
 void validCell(int, int, int);
+void validGame();
 int aliveNeighbors(int, int, int);
 
 // macro definitions
