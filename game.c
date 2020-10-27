@@ -18,7 +18,7 @@
 // fuction prototypes
 void fillInitGen();
 void displayGen(int);
-int validGen (int);
+void validGen(int);
 int aliveNeighbors(int, int, int);
 
 // macro definitions
@@ -38,7 +38,7 @@ typedef struct Generations
 } gen;
 
 gen allGens[MAX_GENERATIONS];
-int totalGen = 0;
+int totalGens = 0;
 int totalRows; 
 int totalColumns;
 
@@ -58,10 +58,9 @@ int main(void)
 	    printf("%s",caseName);	
 	    fgets(input,MAX_INPUT, stdin); // read in the second line with fgets
 	    fillInitGen();
-            totalGen++;
+            totalGens++;
             printf("Rows: %i, colums:%i \n", totalRows, totalColumns); // testing 
 	    displayGen(0);
-            
             
             /*
             // testing alive neighbors
@@ -79,6 +78,7 @@ int main(void)
                 }
             }
             */
+
         }
 
 	// play while(!gameOver)
@@ -109,6 +109,11 @@ int main(void)
 
 int aliveNeighbors(int gen, int row, int col)
 {
+    // precondition: the generation is valid (validGen())
+    // postcondition:  
+
+    validGen(gen);
+
     int numAlive = 0; // counter
     int r; // row to check
     int c; // column to check
@@ -145,7 +150,12 @@ int aliveNeighbors(int gen, int row, int col)
 // The generation number of the generation to be displayed
 // --------------------------------------------------------------------
 void displayGen(int gen)
-{
+{   
+    // precondition: the generation is valid (genValid())
+    // postcondition: 
+    
+    validGen(gen);
+
     int r;
     int c;
     char decoration[MAX_INPUT];
@@ -186,6 +196,9 @@ void displayGen(int gen)
 // ------------------------------------------------------------------
 void fillInitGen()
 {
+    // precondition:  
+    // postcondition: the generation is valid (genValid()) 
+
     char input[MAX_INPUT];
     int r;
     int c;
@@ -206,37 +219,34 @@ void fillInitGen()
 	    }   
 	}
     }
+
+    validGen(0);
+
 } // fillInitGen
 
-/*
-int validGen(int genNum)
+void validGen(int genNum)
 {
-    int r;
-    int c;
-    int valid = 1; // boolean
+    assert(genNum >= 0);
+    assert(genNum <= MAX_GENERATIONS);
+
+    assert(totalRows > 0);
+    assert(totalColumns > 0);
+
+    assert(totalRows <= MAX_ROWS);
+    assert(totalColumns <= MAX_COLUMNS);
+
+    // make sure the board has been created
+    assert(allGens[genNum].board[0][0] == ALIVE || allGens[genNum].board[0][0] == DEAD);
+
+} // validGen 
+
+void validGame()
+{
+    assert(totalGens >= 0);
+    assert(totalGens < MAX_GENERATIONS);
     
-    // board size is less than max
-    for (r = 0; r < rows; r++)
-    {
-	for (c = 0; c < columns; c++)
-	{
-	    // each column should contain alive or dead
-	    if (allGens[genNum].board[r][c] != ALIVE && allGens[genNum].board[r][c] !=DEAD)
-	    {
-		valid = 0;
-	    }
-	}
-    }
+    // totalGens actually reflects the amount of generations
     
-    // check for legaly alive and dead. 
-    // So the colums can't all be alive or all dead?? or can they?  
-
-    assert(r <= MAX_ROWS);
-    assert(c <= MAX_COLUMNS);
-
-    assert(rows <= MAX_ROWS);
-    assert(columns <= MAX_COLUMNS);
-
-    return valid;
-} // validGen */
+    // if generations = 0, then the arrray of all generations should be empty? 
+} // validGame
 
