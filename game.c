@@ -10,7 +10,6 @@
 // The goal of the assignment is to apply the principles of Design by Contract
 //-------------------------------------------------------------------------------
 
-// is this in the new branch?
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -20,6 +19,7 @@
 void fillInitGen();
 void displayGen(int);
 int validGen (int);
+int aliveNeighbors(int, int, int);
 
 // macro definitions
 #define MAX_INPUT 80
@@ -39,8 +39,8 @@ typedef struct Generations
 
 gen allGens[MAX_GENERATIONS];
 int totalGen = 0;
-int columns;
-int rows;
+int totalRows; 
+int totalColumns;
 
 int main(void)
 {
@@ -49,16 +49,38 @@ int main(void)
     int r; // row counter
     int c; // column counter
     int i;    
+    
     while(fgets(caseName, MAX_INPUT, stdin) != NULL)
     {
 	if(caseName[0] == '*')
 	{
-	    scanf("%d %d", &rows, &columns); // read in second line for board dimensions
+	    scanf("%d %d", &totalRows, &totalColumns); // read in second line for board dimensions
 	    printf("%s",caseName);	
 	    fgets(input,MAX_INPUT, stdin); // read in the second line with fgets
 	    fillInitGen();
+            totalGen++;
+            printf("Rows: %i, colums:%i \n", totalRows, totalColumns); // testing 
 	    displayGen(0);
-	}
+            
+            
+            /*
+            // testing alive neighbors
+            // prints out the alive neighbors for each cell            
+            printf("Number of neighbors for each cell:\n");
+            for (r = 0; r < totalRows; r++)
+            {
+                for(c = 0; c < totalColumns; c++)
+                {
+                    int num = aliveNeighbors(0, r, c);
+                    if (num!=0)
+                    {
+                        printf("(%i, %i): %i\n", r+1, c+1, num);
+                    }
+                }
+            }
+            */
+        }
+
 	// play while(!gameOver)
 	    // create new struct 
 	    // iterate through each cell
@@ -73,15 +95,55 @@ int main(void)
     
     printf("end of processing.");
     return(0);
-} 
+}
 
-// ----------------------------------------------------------------
+// ---------------------------------------------------------------------
+// aliveNeighbors 
+// 
+// PURPOSE: Counts how many of the surrounding cells are ALIVE (= "*") 
+// INPUT PARAMETERS: 
+// Generation number, cell row number, cell column number
+// OUTPUT PARAMETERS:
+// Total number of alive neighbors 
+// --------------------------------------------------------------------
+
+int aliveNeighbors(int gen, int row, int col)
+{
+    int numAlive = 0; // counter
+    int r; // row to check
+    int c; // column to check
+
+    for (r = row-1; r <= row+1; r++)
+    {
+	for (c = col-1; c <= col+1; c++)
+	{
+	    if ((r >= 0 && c >= 0) && (r <= totalRows-1 && c <= totalColumns-1))
+            {
+                if(allGens[gen].board[r][c] == ALIVE)
+                {
+                    numAlive++;
+                }
+	    }
+	}
+    }	
+
+    // so it does not count itself
+    if (allGens[gen].board[row][col] == ALIVE)
+    {
+        numAlive--;
+    }
+
+    return numAlive;
+
+} // alive Neighbors
+
+// --------------------------------------------------------------------
 // displayGen
 //
 // PURPOSE: Displays the generation
 // INPUT PARAMETERS:
 // The generation number of the generation to be displayed
-// ----------------------------------------------------------------
+// --------------------------------------------------------------------
 void displayGen(int gen)
 {
     int r;
@@ -92,21 +154,21 @@ void displayGen(int gen)
 
     // make the decorative line
     decoration[0]='+';
-    for (c = 1; c <= columns; c++)
+    for (c = 1; c <= totalColumns; c++)
     {
 	decoration[c] = '-';
     }
-    decoration[columns+1] = '+';
-    decoration[columns+2] = '\0';
+    decoration[totalColumns+1] = '+';
+    decoration[totalColumns+2] = '\0';
 
     /** print the generation **/
 
     printf("%s\n",decoration);
     
-    for (r=0; r<rows; r++)
+    for (r=0; r<totalRows; r++)
     {	
 	printf("|");
-	for (c = 0; c < columns; c++)
+	for (c = 0; c < totalColumns; c++)
 	{
 	    printf("%c",allGens[gen].board[r][c]);
 	}
@@ -129,10 +191,10 @@ void fillInitGen()
     int c;
 
     // traverse every cell to fill the first generation
-    for (r=0; r<rows; r++)
+    for (r=0; r<totalRows; r++)
     {
 	fgets(input, MAX_INPUT, stdin);
-	for (c = 0; c < columns; c++)
+	for (c = 0; c < totalColumns; c++)
 	{	
  	    if (input[c] == 'X') 
 	    {
@@ -145,7 +207,6 @@ void fillInitGen()
 	}
     }
 } // fillInitGen
-
 
 /*
 int validGen(int genNum)
