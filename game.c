@@ -55,7 +55,8 @@ int main(void)
 {
     char caseName[MAX_INPUT];
     char input[MAX_INPUT];
-    int i; 
+    int i;
+
     while(fgets(caseName, MAX_INPUT, stdin) != NULL)
     {
 	if(caseName[0] == '*')
@@ -128,8 +129,6 @@ int main(void)
 
 void newGame()
 {
-    int i;
-    
     // not sure if this is necessary
     memcpy(allGens, emptyGens, MAX_GENERATIONS);
     
