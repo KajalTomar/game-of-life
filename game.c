@@ -22,13 +22,17 @@ void validGen(int);
 void validCell(int, int, int);
 void validGame();
 int aliveNeighbors(int, int, int);
+void nextGen(); 
+int cycle();
+void newGame();
 
 // macro definitions
 #define MAX_INPUT 80
 
 #define MAX_COLUMNS 60
 #define MAX_ROWS 60
-#define MAX_GENERATIONS 250
+#define MAX_GENERATIONS 251
+#define MAX_NEIGHBORS 8
 
 #define ALIVE '*'
 #define DEAD '.'
@@ -39,22 +43,25 @@ typedef struct Generations
     char board[MAX_ROWS][MAX_COLUMNS];
 } gen;
 
+gen emptyGens[MAX_GENERATIONS];
 gen allGens[MAX_GENERATIONS];
 int totalGens;
+int currentGen;
 int totalRows; 
 int totalColumns;
+int gameOver = 0;
 
 int main(void)
 {
     char caseName[MAX_INPUT];
     char input[MAX_INPUT];
-    
+    int i;
+
     while(fgets(caseName, MAX_INPUT, stdin) != NULL)
     {
 	if(caseName[0] == '*')
 	{
-	    // initialize totalGen 
-            totalGens = 0;
+            newGame();
             scanf("%d %d", &totalRows, &totalColumns);// read in second line for board dimensions
             
             // make sure board size is valid
@@ -67,7 +74,7 @@ int main(void)
 	    
             fillInitGen();
             printf("Rows: %i, colums:%i \n", totalRows, totalColumns); // testing 
-	    displayGen(0);
+	    displayGen(currentGen);
             
             /*
             // testing alive neighbors
@@ -88,21 +95,195 @@ int main(void)
 
         }
 
-	// play while(!gameOver)
-	    // create new struct 
-	    // iterate through each cell
-	    // neighbors = numNeighbors()
-	    // if (alive): if neighbors != 2 or 2 => dead
-	    // else (dead): if neighbors == 3 => alive
-	    // totalGen++
-	    // display
+	while(!gameOver)
+        {
+            nextGen();
+	   // displayGen(currentGen);
+            if ((totalGens >= MAX_GENERATIONS) || (cycle()))
+            {
+                gameOver = 1;
+            }
 	    // if genAlreadExists() || totalGen >= 250 => gameOver
 	    // destroy struct
-    }	
+        }
+
+        // how to rest the array?
+
+    if (gameOver)
+    {
+        for (i = totalGens-10; i<totalGens; i++)
+        {
+            if (i>0)
+            {
+                displayGen(i);
+            }
+        }
+    }
     
-    printf("end of processing.");
+    }
+
+    
+    printf("\nend of processing.");
     return(0);
 }
+
+void newGame()
+{
+    // not sure if this is necessary
+    memcpy(allGens, emptyGens, MAX_GENERATIONS);
+    
+    totalGens = 0;
+    currentGen = 0;
+    gameOver =0;
+
+    validGame();
+} //newGame
+
+//----------------------------------------------------------------------
+// cycle
+//
+// PURPOSE: find out if a cycle has occured and print the range it 
+// occured between
+// OUTPUT PARAMETER: 
+// returns 1 if cycle is found, 0 if no cycle is found  
+//----------------------------------------------------------------------
+int cycle()
+{
+    // PRECONDITIONS: 
+    // 0 < currentGen <= MAX_GENERATIONS, validGame(),
+    // POSTCONDITIONS: 
+    // validGame, each generation checked is still valid
+    // current generation is still valid
+    int cycleFound = 0;
+    int i = 0; // index
+    int r;
+    int c;
+
+    assert(currentGen > 0);
+    assert(currentGen <= MAX_GENERATIONS);
+
+    validGame();
+    validGen(currentGen);
+
+    while((!cycleFound) && (i < currentGen))
+    {
+        assert(currentGen < MAX_GENERATIONS);
+        assert(currentGen == totalGens - 1);
+
+        //assume cycle exists 
+        cycleFound = 1;
+        
+        // check each cell. CycleFound will turn false if  a cell doesn't match
+        for (r = 0; r < totalRows; r++)
+        {
+            for (c = 0; c < totalColumns; c++)
+            {
+                if(allGens[i].board[r][c] != allGens[currentGen].board[r][c])
+                {
+                   validCell(i,r,c);
+                   validCell(currentGen,r,c);
+                   cycleFound = 0;
+                }
+            }
+        }
+        
+        validGen(i);
+        i++;
+    }
+
+    i--; // to account for an extra addition at the end
+    
+    validGen(currentGen);
+
+    if (cycleFound)
+    {
+        printf("A cycle was found between generation %i and generation %i\n", i, currentGen);
+    }
+
+    validGame();
+    
+    return cycleFound; 
+}
+// ---------------------------------------------------------------------
+// nextGen
+//
+// PURPOSE: Creates the next generation of the game by the status of each
+// cell in the old generation
+// INPUT PARAMETERS: index of old generation
+// ---------------------------------------------------------------------
+void nextGen()
+{
+    // PRECONDITIONS: 
+    // allGens[oldGen] is a valid generation, totalGens < MAX_GENERATIONS
+    // currentGens >= 1
+    // POSTCONDITIONS: newGen is valid, currentGen has been incremented by
+    // exactly one,  totalGens has been incremented by exactly one
+    
+    int r; 
+    int c;
+    int pastNeighbors; // that are alive
+    int oldGen = currentGen; 
+    
+    currentGen++;
+
+    validGen(oldGen);
+    assert(totalGens < MAX_GENERATIONS);
+    
+    assert(currentGen >= 1);
+    assert(currentGen == oldGen + 1); 
+    assert(currentGen <= MAX_GENERATIONS);
+
+    for(r = 0; r < totalRows; r++)
+    {
+        for(c = 0; c < totalColumns; c++)
+        {
+            pastNeighbors = aliveNeighbors(oldGen, r, c);
+            
+            assert((pastNeighbors >= 0) || (pastNeighbors <= MAX_NEIGHBORS));
+            validCell(oldGen, r, c);
+
+            // situations where the state of the cell would differ
+            if (allGens[oldGen].board[r][c] == ALIVE) // cell was alive
+            {
+                if ((pastNeighbors != 2) && (pastNeighbors != 3)) // pastNeighbor = 1, 4, 5, 6, 7, or 8
+                {
+                    allGens[currentGen].board[r][c] = DEAD;
+                }
+                else // pastNeighbor = 2 or 3
+                {
+                    allGens[currentGen].board[r][c] = ALIVE;
+                }
+            }
+            else // cell was dead 
+            {
+                if (pastNeighbors == 3) 
+                {
+                    allGens[currentGen].board[r][c] = ALIVE;
+                }
+                else // (past neighbors != 3)
+                {
+                    allGens[currentGen].board[r][c] = DEAD;
+                }
+            }
+            
+            validCell(currentGen, r, c);
+
+        } // column
+    } //row
+
+    totalGens++;
+
+    assert(currentGen >= 1);
+    assert(currentGen == oldGen + 1); 
+    assert(currentGen <= MAX_GENERATIONS);
+    
+    validGen(oldGen);
+    validGen(currentGen);
+    
+    assert(totalGens == currentGen + 1);
+    assert(totalGens <= MAX_GENERATIONS);
+
+} //nextGen
 
 // ---------------------------------------------------------------------
 // aliveNeighbors 
@@ -162,8 +343,8 @@ int aliveNeighbors(int gen, int row, int col)
         numAlive--;
     }
     
-    assert(numAlive > 0);
-    assert(numAlive <= 8);
+    assert(numAlive >= 0);
+    assert(numAlive <= MAX_NEIGHBORS);
 
     return numAlive;
 
@@ -179,7 +360,7 @@ int aliveNeighbors(int gen, int row, int col)
 void displayGen(int gen)
 {   
     // precondition: the generation is valid (genValid())
-    
+    // postcondition: the generation is still valid 
     validGen(gen);
 
     int r;
@@ -215,6 +396,8 @@ void displayGen(int gen)
     } 
 
     printf("%s\n", decoration);
+
+    validGen(gen);
     
 } // display
 
@@ -238,6 +421,7 @@ void fillInitGen()
     int c;
 
     assert(totalGens==0);
+    currentGen = 0;
 
     // traverse every cell to fill the first generation
     for (r=0; r<totalRows; r++)
@@ -264,15 +448,16 @@ void fillInitGen()
 	    }
             
             // make sure the cell was changed and has valid entries
-            assert(allGens[0].board[r][c] != ' ');
-            assert(allGens[0].board[r][c] != 'X');
-            validCell(0, r, c);
+            assert(allGens[currentGen].board[r][c] != ' ');
+            assert(allGens[currentGen].board[r][c] != 'X');
+            validCell(currentGen, r, c);
 	}
     }
     
     totalGens++; 
-
+    
     assert(totalGens==1);
+    assert(currentGen==0);
     validGen(0);
 
 } // fillInitGen
