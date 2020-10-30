@@ -107,7 +107,8 @@ int main(void)
     
     printf("\nend of processing\n");
     return 0;
-}
+
+} //main
 
 // ------------------------------------------------------------------
 // loadUniverse
@@ -128,13 +129,20 @@ void loadUniverse()
     int r; // row
     int c; // column
 
+    // initialize at the start of each game
     totalGens = 0;
-    currentGen = 0; // set current gen as one
-    gameOver = 0; // initialize gameOver as false
+    currentGen = 0; 
+    gameOver = 0; // = false
+
+    assert(totalRows > 0);
+    assert(totalRows <= MAX_ROWS);
+    assert(totalColumns > 0);
+    assert(totalColumns <= MAX_COLUMNS);
 
     // traverse every cell to fill the first generation
     for (r = 0; r < totalRows; r++)
     {
+
         // read one row at a time
 	fgets(input, MAX_INPUT, stdin);
 
@@ -184,8 +192,8 @@ void loadUniverse()
 // --------------------------------------------------------------------
 void printGen(int gen)
 {   
-    // precondition: 0 <= gen <= MAX_GENERATIONS, the generation is valid 
-    // postcondition: the generation is still valid 
+    // preconditions: 0 <= gen <= MAX_GENERATIONS, the generation is valid 
+    // postconditions: the generation is still valid 
     
     validGen(gen);
 
@@ -212,7 +220,7 @@ void printGen(int gen)
 
     printf("%s\n",decoration);
     
-    for (r=0; r<totalRows; r++)
+    for (r = 0; r < totalRows; r++)
     {	
 	printf("|");
 	for (c = 0; c < totalColumns; c++)
@@ -236,10 +244,14 @@ void printGen(int gen)
 // printUniverse
 //
 // PURPOSE: prints the universe (game). Amount of generations printed
-// is according to if compiled with NDEBUG or not.
+// is according to if the program is compiled with NDEBUG or not.
 //--------------------------------------------------------------------
 void printUniverse()
 {
+    // preconditions: all the generations in the universe are valid, 
+    // 0 <= totalGen <= MAX_GENERATIONS, 
+    // postconditions: the generations are still valid 
+
     int currGen = 0; // current gen
 
     // if complied with NDEBUG
@@ -252,7 +264,14 @@ void printUniverse()
     // print the universe (game)
     while ((currGen < totalGens) && (currGen >= 0))
     {
+        validGen(currGen);
+
+        assert((currGen >= 0) && (currGen < totalGens));
         printGen(currGen);
+        
+        // invariant
+        validGen(currGen);
+        
         currGen++;
     }
 
@@ -265,18 +284,29 @@ void printUniverse()
 //---------------------------------------------------------------------
 void playGame()
 {
-    validGame();
+    // preconditions: game is valid, game over = 0
+    // postconditions: each generation is valid, game over = 1 
 
+    validGame();
+    
     while(!gameOver)
     {
+        assert(gameOver == 0);
+
         nextGen();
+        validGen(currentGen);
+
         if ((totalGens >= MAX_GENERATIONS) || (cycleCheck()))
         {
+            assert(totalGens >= MAX_GENERATIONS || cycleCheck());
             gameOver = 1;
         }
+
         validGame();
     }
  
+ assert(gameOver);
+
  } //playGame
 
 // ---------------------------------------------------------------------
@@ -290,24 +320,25 @@ void nextGen()
 {
     // PRECONDITIONS: 
     // allGens[oldGen] is a valid generation, totalGens < MAX_GENERATIONS
-    // currentGens >= 1
+    // 0 <= currentGens <= totalGens, 
     // POSTCONDITIONS: newGen is valid, currentGen has been incremented by
     // exactly one,  totalGens has been incremented by exactly one
     
     int r; // row
     int c; // column
     int pastNeighbors; // counts how many are alive
-    int oldGen = currentGen; 
+    int oldGen; 
+    
+    assert(totalGens < MAX_GENERATIONS);
+    assert(currentGen >= 0);
+    assert(currentGen <= MAX_GENERATIONS);
+    
+    validGen(currentGen);
+    oldGen = currentGen;
+    validGen(oldGen);
     
     currentGen++;
-
-    validGen(oldGen);
-    assert(totalGens < MAX_GENERATIONS);
     
-    assert(currentGen >= 1);
-    assert(currentGen == oldGen + 1); 
-    assert(currentGen <= MAX_GENERATIONS);
-
     // go through every cell
     for(r = 0; r < totalRows; r++)
     {
@@ -389,6 +420,10 @@ int aliveNeighbors(int gen, int row, int col)
     // the generation is still valid 
     // 0 <= numAlive <= MAX_NEIGHBORS (=8)
 
+    int numAlive = 0; // counter to track number of neighbors that are ALIVE
+    int r; // row 
+    int c; // column 
+    
     assert(0 <= gen);
     assert(gen < MAX_GENERATIONS);
     validGen(gen);
@@ -401,10 +436,6 @@ int aliveNeighbors(int gen, int row, int col)
 
     validCell(gen, row, col);
 
-    int numAlive = 0; // counter to track number of neighbors that are ALIVE
-    int r; // row 
-    int c; // column 
-    
     // check each cell
     for (r = row-1; r <= row+1; r++)
     {
