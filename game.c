@@ -117,8 +117,8 @@ int main(void)
 // ------------------------------------------------------------------
 void loadUniverse()
 {
-    // PRECONDITION: 0 < totalRows <= MAX_ROWS, 0 < totalColumns <= MAX_COLUMNS  
-    // POSTCONDITION: 
+    // PRECONDITIONS: 0 < totalRows <= MAX_ROWS, 0 < totalColumns <= MAX_COLUMNS  
+    // POSTCONDITIONS: 
     // allGens[0] is valid, totalGen is exactly 1
     // each cell is either ALIVE (= '*') or DEAD (='.')
 
@@ -192,8 +192,8 @@ void loadUniverse()
 // --------------------------------------------------------------------
 void printGen(int gen)
 {   
-    // preconditions: 0 <= gen <= MAX_GENERATIONS, the generation is valid 
-    // postconditions: the generation is still valid 
+    // PRECONDITIONS: 0 <= gen <= MAX_GENERATIONS, the generation is valid 
+    // POSTCONDITIONS: the generation is still valid 
     
     validGen(gen);
 
@@ -248,9 +248,9 @@ void printGen(int gen)
 //--------------------------------------------------------------------
 void printUniverse()
 {
-    // preconditions: all the generations in the universe are valid, 
+    // PRECONDITIONS: all the generations in the universe are valid, 
     // 0 <= totalGen <= MAX_GENERATIONS, 
-    // postconditions: the generations are still valid 
+    // POSTCONDITIONS: the generations are still valid 
 
     int currGen = 0; // current gen
 
@@ -284,8 +284,8 @@ void printUniverse()
 //---------------------------------------------------------------------
 void playGame()
 {
-    // preconditions: game is valid, game over = 0
-    // postconditions: each generation is valid, game over = 1 
+    // PRECONDITIONS: game is valid, game over = 0
+    // POSTCONDITIONS: each generation is valid, game over = 1 
 
     validGame();
     
