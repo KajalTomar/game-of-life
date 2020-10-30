@@ -16,10 +16,30 @@
 #include <assert.h>
 
 //-----------------------------------------------
+// macro definitions
+
+#ifdef NDEBUG
+    #define PRINT_X_GENS 10
+#else
+    #define PRINT_X_GENS 0
+#endif 
+
+#define MAX_INPUT 80
+#define MAX_GENERATIONS 251
+
+#define MAX_COLUMNS 60
+#define MAX_ROWS 60
+#define MAX_NEIGHBORS 8
+
+#define ALIVE '*'
+#define DEAD '.'
+
+//-----------------------------------------------
 // fuction prototypes
 
 void loadUniverse();
-void printUniverse(int);
+void printGen(int);
+void printUniverse();
 void playGame();
 void nextGen(); 
 int aliveNeighbors(int, int, int);
@@ -29,19 +49,6 @@ int cycleCheck();
 void validCell(int, int, int);
 void validGen(int);
 void validGame();
-
-//-----------------------------------------------
-// macro definitions
-
-#define MAX_INPUT 80
-
-#define MAX_COLUMNS 60
-#define MAX_ROWS 60
-#define MAX_GENERATIONS 251
-#define MAX_NEIGHBORS 8
-
-#define ALIVE '*'
-#define DEAD '.'
 
 //------------------------------------------------
 // file variables 
@@ -74,23 +81,31 @@ int main(void)
 	if(caseName[0] == '*')
 	{
             scanf("%d %d", &totalRows, &totalColumns); // read in second line for board dimensions
+            printf("%s",caseName); 
+
+	    fgets(input,MAX_INPUT, stdin); // read in the second line with fgets
             
             // make sure board size is valid
             assert(totalRows <= MAX_ROWS);
             assert(totalColumns <= MAX_COLUMNS);
 	    
-            printf("%s",caseName); 
-
-	    fgets(input,MAX_INPUT, stdin); // read in the second line with fgets
-	    
+            if ((totalRows > 0) && (totalRows <= MAX_ROWS) && (totalColumns > 0) && (totalColumns <= MAX_COLUMNS))
+            {
             loadUniverse();
-            printUniverse(currentGen);
+            printGen(currentGen);
             playGame();
+            printUniverse();
+            }
+            else 
+            {
+                printf("Your initial board (%iX%i) doesn't fit the proper dimensions.\n", totalRows, totalColumns);
+                printf("Board minimum: 1X1 | Board maximum: 60X60\n\n");
+            }
         }
         
     } // read again until end of file
     
-    printf("\nend of processing");
+    printf("\nend of processing\n");
     return 0;
 }
 
@@ -101,7 +116,7 @@ int main(void)
 // ------------------------------------------------------------------
 void loadUniverse()
 {
-    // PRECONDITION:   
+    // PRECONDITION: 0 < totalRows <= MAX_ROWS, 0 < totalColumns <= MAX_COLUMNS  
     // POSTCONDITION: 
     // allGens[0] is valid, totalGen is exactly 1
     // each cell is either ALIVE (= '*') or DEAD (='.')
@@ -118,7 +133,7 @@ void loadUniverse()
     gameOver = 0; // initialize gameOver as false
 
     // traverse every cell to fill the first generation
-    for (r=0; r<totalRows; r++)
+    for (r = 0; r < totalRows; r++)
     {
         // read one row at a time
 	fgets(input, MAX_INPUT, stdin);
@@ -161,13 +176,13 @@ void loadUniverse()
 } // loadUniverse
 
 // --------------------------------------------------------------------
-// printUniverse
+// printGen
 //
 // PURPOSE: Displays the generation
 // INPUT PARAMETERS:
 // The generation number of the generation to be displayed
 // --------------------------------------------------------------------
-void printUniverse(int gen)
+void printGen(int gen)
 {   
     // precondition: 0 <= gen <= MAX_GENERATIONS, the generation is valid 
     // postcondition: the generation is still valid 
@@ -215,7 +230,33 @@ void printUniverse(int gen)
     // make sure the generation is still valid
     validGen(gen);
     
-} // printUniverse
+} // printGen
+
+//--------------------------------------------------------------------
+// printUniverse
+//
+// PURPOSE: prints the universe (game). Amount of generations printed
+// is according to if compiled with NDEBUG or not.
+//--------------------------------------------------------------------
+void printUniverse()
+{
+    int currGen = 0; // current gen
+
+    // if complied with NDEBUG
+    // so we only print the last x generations
+    if (PRINT_X_GENS)
+    {
+     currGen = totalGens - PRINT_X_GENS;
+    }
+
+    // print the universe (game)
+    while ((currGen < totalGens) && (currGen >= 0))
+    {
+        printGen(currGen);
+        currGen++;
+    }
+
+} // print Universe
 
 //---------------------------------------------------------------------
 // playGame
@@ -224,34 +265,18 @@ void printUniverse(int gen)
 //---------------------------------------------------------------------
 void playGame()
 {
-    int i;
-
     validGame();
 
     while(!gameOver)
     {
         nextGen();
-        // displayGen(currentGen);
         if ((totalGens >= MAX_GENERATIONS) || (cycleCheck()))
         {
             gameOver = 1;
         }
-	    // if genAlreadExists() || totalGen >= 250 => gameOver
-	    // destroy struct
         validGame();
     }
-
-    if (gameOver)
-    {
-        for (i = totalGens-10; i<totalGens; i++)
-        {
-            if (i>0)
-            {
-                printUniverse(i);
-            }
-        }
-    }
-
+ 
  } //playGame
 
 // ---------------------------------------------------------------------
