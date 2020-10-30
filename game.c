@@ -16,17 +16,21 @@
 #include <assert.h>
 
 // fuction prototypes
-void fillInitGen();
-void displayGen(int);
+
+void loadUniverse();
+void printUniverse(int);
+void playGame();
+void nextGen(); 
+int aliveNeighbors(int, int, int);
+int cycleCheck();
+
+// invariant function prototypes
 void validGen(int);
 void validCell(int, int, int);
 void validGame();
-int aliveNeighbors(int, int, int);
-void nextGen(); 
-int cycle();
-void newGame();
 
 // macro definitions
+
 #define MAX_INPUT 80
 
 #define MAX_COLUMNS 60
@@ -43,19 +47,22 @@ typedef struct Generations
     char board[MAX_ROWS][MAX_COLUMNS];
 } gen;
 
-gen emptyGens[MAX_GENERATIONS];
 gen allGens[MAX_GENERATIONS];
+
 int totalGens;
 int currentGen;
+
 int totalRows; 
 int totalColumns;
+
 int gameOver = 0;
+
+// --------------------------------------------------------
 
 int main(void)
 {
     char caseName[MAX_INPUT];
     char input[MAX_INPUT];
-    int i;
 
     while(fgets(caseName, MAX_INPUT, stdin) != NULL)
     {
@@ -72,40 +79,38 @@ int main(void)
 
 	    fgets(input,MAX_INPUT, stdin); // read in the second line with fgets
 	    
-            fillInitGen();
-            printf("Rows: %i, colums:%i \n", totalRows, totalColumns); // testing 
-	    displayGen(currentGen);
-            
-            /*
-            // testing alive neighbors
-            // prints out the alive neighbors for each cell            
-            printf("Number of neighbors for each cell:\n");
-            for (r = 0; r < totalRows; r++)
-            {
-                for(c = 0; c < totalColumns; c++)
-                {
-                    int num = aliveNeighbors(0, r, c);
-                    if (num!=0)
-                    {
-                        printf("(%i, %i): %i\n", r+1, c+1, num);
-                    }
-                }
-            }
-            */
-
+            loadUniverse();
+            printUniverse(currentGen);
+            playGame();
         }
+        
+    }
+    
+    printf("\nend of processing");
+    return 0;
+}
 
-	while(!gameOver)
+//---------------------------------------------------------------------
+// playGame
+//
+// PURPOSE: Play the game 
+//---------------------------------------------------------------------
+void playGame()
+{
+
+    int i;
+	
+    while(!gameOver)
+    {
+        nextGen();
+        // displayGen(currentGen);
+        if ((totalGens >= MAX_GENERATIONS) || (cycleCheck()))
         {
-            nextGen();
-	   // displayGen(currentGen);
-            if ((totalGens >= MAX_GENERATIONS) || (cycle()))
-            {
-                gameOver = 1;
-            }
+            gameOver = 1;
+        }
 	    // if genAlreadExists() || totalGen >= 250 => gameOver
 	    // destroy struct
-        }
+    }
 
         // how to rest the array?
 
@@ -115,29 +120,12 @@ int main(void)
         {
             if (i>0)
             {
-                displayGen(i);
+                printUniverse(i);
             }
         }
     }
-    
-    }
 
-    
-    printf("\nend of processing.");
-    return(0);
-}
-
-void newGame()
-{
-    // not sure if this is necessary
-    memcpy(allGens, emptyGens, MAX_GENERATIONS);
-    
-    totalGens = 0;
-    currentGen = 0;
-    gameOver =0;
-
-    validGame();
-} //newGame
+ } //playGame
 
 //----------------------------------------------------------------------
 // cycle
@@ -147,7 +135,7 @@ void newGame()
 // OUTPUT PARAMETER: 
 // returns 1 if cycle is found, 0 if no cycle is found  
 //----------------------------------------------------------------------
-int cycle()
+int cycleCheck()
 {
     // PRECONDITIONS: 
     // 0 < currentGen <= MAX_GENERATIONS, validGame(),
@@ -351,13 +339,13 @@ int aliveNeighbors(int gen, int row, int col)
 } // alive Neighbors
 
 // --------------------------------------------------------------------
-// displayGen
+// printUniverse
 //
 // PURPOSE: Displays the generation
 // INPUT PARAMETERS:
 // The generation number of the generation to be displayed
 // --------------------------------------------------------------------
-void displayGen(int gen)
+void printUniverse(int gen)
 {   
     // precondition: the generation is valid (genValid())
     // postcondition: the generation is still valid 
@@ -402,11 +390,11 @@ void displayGen(int gen)
 } // display
 
 // ------------------------------------------------------------------
-// fillInitGen
+// loadUniverse
 // 
 // PURPOSE: Fills the first generation for any case
 // ------------------------------------------------------------------
-void fillInitGen()
+void loadUniverse()
 {
     // PRECONDITION: totalGen is exactly 0  
     // POSTCONDITION: 
