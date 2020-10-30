@@ -25,8 +25,8 @@ int aliveNeighbors(int, int, int);
 int cycleCheck();
 
 // invariant function prototypes
-void validGen(int);
 void validCell(int, int, int);
+void validGen(int);
 void validGame();
 
 // macro definitions
@@ -90,6 +90,118 @@ int main(void)
     return 0;
 }
 
+// ------------------------------------------------------------------
+// loadUniverse
+// 
+// PURPOSE: Fills the first generation for any case
+// ------------------------------------------------------------------
+void loadUniverse()
+{
+    // PRECONDITION: totalGen is exactly 0  
+    // POSTCONDITION: 
+    // allGens[0] is valid, totalGen is exactly 1
+    // each cell is either ALIVE (= '*') or DEAD (='.')
+
+    // note: I'm not checking that the input is correct (input[c] == 'X' or ' ') before 
+    // inserting it because we are told that there will be no errors in input file format
+    
+    char input[MAX_INPUT];
+    int r;
+    int c;
+
+    assert(totalGens==0);
+    currentGen = 0;
+
+    // traverse every cell to fill the first generation
+    for (r=0; r<totalRows; r++)
+    {
+	fgets(input, MAX_INPUT, stdin);
+	for (c = 0; c < totalColumns; c++)
+	{	
+            // make sure r and c are within the valid range
+ 	    assert(r >= 0);
+            assert(r <= totalRows);
+            assert(r <= MAX_ROWS);
+
+            assert(c >= 0);
+            assert(c <= totalColumns);
+            assert(c <= MAX_COLUMNS);
+            
+            if (input[c] == 'X') 
+	    {
+		allGens[0].board[r][c] = ALIVE; // = '*'
+	    }
+	    else // (input[c] == ' ')
+	    {
+		allGens[0].board[r][c] = DEAD; // = '.'
+	    }
+            
+            // make sure the cell was changed and has valid entries
+            assert(allGens[currentGen].board[r][c] != ' ');
+            assert(allGens[currentGen].board[r][c] != 'X');
+            validCell(currentGen, r, c);
+	}
+    }
+    
+    totalGens++; 
+    
+    assert(totalGens==1);
+    assert(currentGen==0);
+    validGen(0);
+
+} // loadUniverse
+
+// --------------------------------------------------------------------
+// printUniverse
+//
+// PURPOSE: Displays the generation
+// INPUT PARAMETERS:
+// The generation number of the generation to be displayed
+// --------------------------------------------------------------------
+void printUniverse(int gen)
+{   
+    // precondition: the generation is valid (genValid())
+    // postcondition: the generation is still valid 
+    validGen(gen);
+
+    int r;
+    int c;
+    char decoration[MAX_INPUT];
+
+    assert(gen >= 0);
+    assert(gen <= MAX_GENERATIONS);
+    printf("Generation %i:\n", gen);
+
+    // make the decorative line
+    decoration[0]='+';
+    for (c = 1; c <= totalColumns; c++)
+    {
+	decoration[c] = '-';
+    }
+    decoration[totalColumns+1] = '+';
+    decoration[totalColumns+2] = '\0';
+
+    /** print the generation **/
+
+    printf("%s\n",decoration);
+    
+    for (r=0; r<totalRows; r++)
+    {	
+	printf("|");
+	for (c = 0; c < totalColumns; c++)
+	{
+            validCell(gen, r, c);
+	    printf("%c",allGens[gen].board[r][c]);
+	}
+    printf("|\n");
+    } 
+
+    printf("%s\n", decoration);
+
+    validGen(gen);
+    
+} // display
+
 //---------------------------------------------------------------------
 // playGame
 //
@@ -127,71 +239,6 @@ void playGame()
 
  } //playGame
 
-//----------------------------------------------------------------------
-// cycle
-//
-// PURPOSE: find out if a cycle has occured and print the range it 
-// occured between
-// OUTPUT PARAMETER: 
-// returns 1 if cycle is found, 0 if no cycle is found  
-//----------------------------------------------------------------------
-int cycleCheck()
-{
-    // PRECONDITIONS: 
-    // 0 < currentGen <= MAX_GENERATIONS, validGame(),
-    // POSTCONDITIONS: 
-    // validGame, each generation checked is still valid
-    // current generation is still valid
-    int cycleFound = 0;
-    int i = 0; // index
-    int r;
-    int c;
-
-    assert(currentGen > 0);
-    assert(currentGen <= MAX_GENERATIONS);
-
-    validGame();
-    validGen(currentGen);
-
-    while((!cycleFound) && (i < currentGen))
-    {
-        assert(currentGen < MAX_GENERATIONS);
-        assert(currentGen == totalGens - 1);
-
-        //assume cycle exists 
-        cycleFound = 1;
-        
-        // check each cell. CycleFound will turn false if  a cell doesn't match
-        for (r = 0; r < totalRows; r++)
-        {
-            for (c = 0; c < totalColumns; c++)
-            {
-                if(allGens[i].board[r][c] != allGens[currentGen].board[r][c])
-                {
-                   validCell(i,r,c);
-                   validCell(currentGen,r,c);
-                   cycleFound = 0;
-                }
-            }
-        }
-        
-        validGen(i);
-        i++;
-    }
-
-    i--; // to account for an extra addition at the end
-    
-    validGen(currentGen);
-
-    if (cycleFound)
-    {
-        printf("A cycle was found between generation %i and generation %i\n", i, currentGen);
-    }
-
-    validGame();
-    
-    return cycleFound; 
-}
 // ---------------------------------------------------------------------
 // nextGen
 //
@@ -338,117 +385,91 @@ int aliveNeighbors(int gen, int row, int col)
 
 } // alive Neighbors
 
-// --------------------------------------------------------------------
-// printUniverse
+//----------------------------------------------------------------------
+// cycle
 //
-// PURPOSE: Displays the generation
-// INPUT PARAMETERS:
-// The generation number of the generation to be displayed
-// --------------------------------------------------------------------
-void printUniverse(int gen)
-{   
-    // precondition: the generation is valid (genValid())
-    // postcondition: the generation is still valid 
-    validGen(gen);
-
-    int r;
-    int c;
-    char decoration[MAX_INPUT];
-
-    assert(gen >= 0);
-    assert(gen <= MAX_GENERATIONS);
-    printf("Generation %i:\n", gen);
-
-    // make the decorative line
-    decoration[0]='+';
-    for (c = 1; c <= totalColumns; c++)
-    {
-	decoration[c] = '-';
-    }
-    decoration[totalColumns+1] = '+';
-    decoration[totalColumns+2] = '\0';
-
-    /** print the generation **/
-
-    printf("%s\n",decoration);
-    
-    for (r=0; r<totalRows; r++)
-    {	
-	printf("|");
-	for (c = 0; c < totalColumns; c++)
-	{
-            validCell(gen, r, c);
-	    printf("%c",allGens[gen].board[r][c]);
-	}
-    printf("|\n");
-    } 
-
-    printf("%s\n", decoration);
-
-    validGen(gen);
-    
-} // display
-
-// ------------------------------------------------------------------
-// loadUniverse
-// 
-// PURPOSE: Fills the first generation for any case
-// ------------------------------------------------------------------
-void loadUniverse()
+// PURPOSE: find out if a cycle has occured and print the range it 
+// occured between
+// OUTPUT PARAMETER: 
+// returns 1 if cycle is found, 0 if no cycle is found  
+//----------------------------------------------------------------------
+int cycleCheck()
 {
-    // PRECONDITION: totalGen is exactly 0  
-    // POSTCONDITION: 
-    // allGens[0] is valid, totalGen is exactly 1
-    // each cell is either ALIVE (= '*') or DEAD (='.')
-
-    // note: I'm not checking that the input is correct (input[c] == 'X' or ' ') before 
-    // inserting it because we are told that there will be no errors in input file format
-    
-    char input[MAX_INPUT];
+    // PRECONDITIONS: 
+    // 0 < currentGen <= MAX_GENERATIONS, validGame(),
+    // POSTCONDITIONS: 
+    // validGame, each generation checked is still valid
+    // current generation is still valid
+    int cycleFound = 0;
+    int i = 0; // index
     int r;
     int c;
 
-    assert(totalGens==0);
-    currentGen = 0;
+    assert(currentGen > 0);
+    assert(currentGen <= MAX_GENERATIONS);
 
-    // traverse every cell to fill the first generation
-    for (r=0; r<totalRows; r++)
+    validGame();
+    validGen(currentGen);
+
+    while((!cycleFound) && (i < currentGen))
     {
-	fgets(input, MAX_INPUT, stdin);
-	for (c = 0; c < totalColumns; c++)
-	{	
-            // make sure r and c are within the valid range
- 	    assert(r >= 0);
-            assert(r <= totalRows);
-            assert(r <= MAX_ROWS);
+        assert(currentGen < MAX_GENERATIONS);
+        assert(currentGen == totalGens - 1);
 
-            assert(c >= 0);
-            assert(c <= totalColumns);
-            assert(c <= MAX_COLUMNS);
-            
-            if (input[c] == 'X') 
-	    {
-		allGens[0].board[r][c] = ALIVE; // = '*'
-	    }
-	    else // (input[c] == ' ')
-	    {
-		allGens[0].board[r][c] = DEAD; // = '.'
-	    }
-            
-            // make sure the cell was changed and has valid entries
-            assert(allGens[currentGen].board[r][c] != ' ');
-            assert(allGens[currentGen].board[r][c] != 'X');
-            validCell(currentGen, r, c);
-	}
+        //assume cycle exists 
+        cycleFound = 1;
+        
+        // check each cell. CycleFound will turn false if  a cell doesn't match
+        for (r = 0; r < totalRows; r++)
+        {
+            for (c = 0; c < totalColumns; c++)
+            {
+                if(allGens[i].board[r][c] != allGens[currentGen].board[r][c])
+                {
+                   validCell(i,r,c);
+                   validCell(currentGen,r,c);
+                   cycleFound = 0;
+                }
+            }
+        }
+        
+        validGen(i);
+        i++;
     }
-    
-    totalGens++; 
-    
-    assert(totalGens==1);
-    assert(currentGen==0);
-    validGen(0);
 
-} // fillInitGen
+    i--; // to account for an extra addition at the end
+    
+    validGen(currentGen);
+
+    if (cycleFound)
+    {
+        printf("A cycle was found between generation %i and generation %i\n", i, currentGen);
+    }
+
+    validGame();
+    
+    return cycleFound; 
+}
+//---------------------------------------------------------------------------
+// validCell
+//
+// PURPOSE: Invariant function. Validates that given cell meets certain 
+// conditions using assertions.
+// INPUT PARAMETER: 
+// index of the generation to validate, index of cell row and column
+//--------------------------------------------------------------------------
+void validCell(int gen, int row, int column)
+{
+    assert(row >= 0);
+    assert(row <= totalRows);
+    assert(row <= MAX_ROWS);
+
+    assert(column >= 0);
+    assert(column <= totalColumns);
+    assert(column <= MAX_COLUMNS);
+
+    assert(allGens[gen].board[row][column] == ALIVE || allGens[gen].board[row][column] == DEAD);
+} // validCell
 
 //---------------------------------------------------------------------------
 // validGen
@@ -476,29 +497,6 @@ void validGen(int genNum)
     assert(allGens[genNum].board[0][0] == ALIVE || allGens[genNum].board[0][0] == DEAD);
 
 } // validGen 
-
-
-//---------------------------------------------------------------------------
-// validCell
-//
-// PURPOSE: Invariant function. Validates that given cell meets certain 
-// conditions using assertions.
-// INPUT PARAMETER: 
-// index of the generation to validate, index of cell row and column
-//--------------------------------------------------------------------------
-void validCell(int gen, int row, int column)
-{
-    assert(row >= 0);
-    assert(row <= totalRows);
-    assert(row <= MAX_ROWS);
-
-    assert(column >= 0);
-    assert(column <= totalColumns);
-    assert(column <= MAX_COLUMNS);
-
-    assert(allGens[gen].board[row][column] == ALIVE || allGens[gen].board[row][column] == DEAD);
-} // validCell
-
 
 //---------------------------------------------------------------------------
 // validGame
