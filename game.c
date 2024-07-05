@@ -1,10 +1,4 @@
 //------------------------------------------------------------------------------
-// NAME: 
-// STUDENT NUMBER: 
-// COURSE: , SECTION: 
-// INSTRUCTOR:
-// ASSIGNMENT: 2, QUESTION: 1
-// 
 // REMARKS: 
 // This is an implementation of the Conway's Game of Life.
 // The goal of the assignment is to apply the principles of Design by Contract
